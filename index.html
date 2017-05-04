@@ -1,1 +1,635 @@
-Hello World
+<table class="display">
+<thead>
+ <tr>
+      <th></th>
+      <th>Docker</th>
+      <th>Singularity</th>
+      <th>Shifter</th>
+   <th>UGE Container Ed.</th>
+    </tr>
+</thead>
+<tfoot>
+ <tr>
+      <th></th>
+      <th>Docker</th>
+      <th>Singularity</th>
+      <th>Shifter</th>
+   <th>UGE Container Ed.</th>
+  </tr>
+</tfoot>
+
+
+<tbody>
+
+ 
+
+<tr>
+    <td>Main problem being addressed</td>
+    <td>DevOps, microservices.  Enterprise applications</td>
+    <td>
+        Application portability (single image file, contain all dependencies) <br>
+        Reproducibility, run cross platform, provide support for legacy OS and apps.<br>
+    </td>
+    <td>Utilize the large number of docker apps.  Provides a way to run them in HPC after a conversion process.  It also strip out all the requirements of root so that they are runnable as user process.  <br>
+    </td>
+  <td>Running dockers containers in HPC, with UGE managing the docker daemon process (?) </td>
+</tr>
+
+
+
+<tr>
+    <td>Interaction w/ Docker</td>
+    <td></td>
+    <td>
+        Singularity work completely independent of Docker.  <br>
+        It does have ability to import docker images, convert them to singularity images, or run docker container directly<br>
+    </td>
+    <td>
+        Shifter primary workflow is to pull and convert docker image into shifter image.<br>
+        Image Gateway connects to Docker Hub using its build-in functions, docker does not need to be installed.
+    </td>
+    <td></td>
+</tr>
+
+<tr>
+    <td>User group of primary focus</td>
+    <td>Developers/DevOps</td>
+    <td colspan="2">Scientific Application Users</td>
+    <td>UGE users</td>
+</tr>
+
+
+
+    <tr><td>Use Case Focus</td>
+    <td>microservices.  Do one small thing alone but does it well.  Often daemon listening on TCP port 24/7</td>
+    <td colspan="2">
+  Images that target a single application or workflow (often with very complicated stacks), software that has difficult dependencies (e.g. old or different library versions)
+    </td>
+    <td>
+    </td>
+
+
+
+</tr><tr>
+    <td>Examplifying Use Scenario</td>
+    <td>
+ A trio of container to host a blogging site: <br>
+ One docker container running httpd listen to a mapped TCP port 80 <br>
+ A second container running a MySql DB <br>
+ Finally a WordPress container running on top taking user requests <br>
+    </td>
+    <td>
+ <ul>
+        <li> A large-ish container with all dependencies build-in, but targetting only a very specific application (eg a custom python program needed a specific version of Anaconda and set of python libraries)  <br>
+        </li><li> A "gigantic" image containing the whole OS of a dying computer, running a mission critical legacy app <br>
+        </li><li> Potentially docker-like, with many small containers, and string them together via command chain (not sure if there are ways to configure dependencies/versions in definition file) <br>
+ </li></ul>
+    </td>
+    <td>
+ A validated image containing high energy particle physics workflow.
+    </td>
+    <td></td>
+</tr>
+
+
+<tr>
+      <td>Portability</td>
+      <td>Docker Hub<br></td>
+      <td>Single image file.  Container purpose build for singularity.  Can import docker images.  Working to accept docker file or Rocket definition syntax as Singularity definition.  <br>
+      Singularity Hub host a repository of images and definition files<br>  
+      </td>
+      <td>Image Gateway pulls from Docker Hub, automatically convert to shifter image.  </td>
+    <td></td>
+</tr>
+
+
+
+<!--
+<tr>
+    <td>Potential Cons/Questions?</td>
+    <td>Not easily adoptable in HPC environment</td>
+    <td>All dependencies in a single image file -> Requires large storage space?  Docker allowed small update if lower stack images remained the same</td>
+    <td>While live docker images are editable, it requires root.  Shifter sanitazed the root requirements, so its containers are immutable? </td>
+  <td>User need elevated priviledges to start containers ? </td>
+</tr>
+-->
+
+
+
+<tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+</tr>
+
+
+
+
+
+
+
+
+
+<tr>
+      <td>Version</td>
+      <td>1.15-1</td>
+      <td>2.2  <br>
+          Documentation is decent, with many community articles popping up as well.
+      </td>
+      <td>16.08.3 (pre-release)  <br>
+          Documentation is work needing progress :).
+      </td>
+      <td>8</td>
+</tr>
+
+ 
+<tr>
+    <td>Host OS Req</td>
+    <td>
+    Linux kernel 3.10+, eg: <br>
+  RHEL 7 <br>
+  Debian 8.0 <br>
+    Ubuntu 12.04<br>
+   SUSE Linux Enterprise 12<br>
+    <a href="https://docs.docker.com/engine/installation/linux/">other</a>
+    </td>
+    <td>
+  RHEL 6<br>
+  Ubuntu <br>
+  ...<br>
+   </td>
+    <td>
+  Cray Linux Environment<br>
+  Linux with kernel 2.6.25+, eg <br>
+    RHEL 6. <br> 
+        ...<br>
+   </td>
+    <td>
+  RHEL 7<br>
+  Newer version of Linux that  supports Docker/cgroup. 
+ </td>
+</tr>
+
+
+<tr>
+      <td>Run different OS</td>
+      <td>Yes.  <br> 
+          docker pull centos/ubuntu/etc
+      </td>
+      <td>Yes.  Utilize commands like debootstrap and febootstrap to bootstrap a new image</td>
+      <td>Yes</td>
+      <td></td>
+</tr>
+
+
+<tr>
+    <td>Guiding principle</td>
+    <td></td>
+    <td>Make container as transparent as possible to user.  Run as much as possible as normal user process, change environment only enough to provide portability of the application
+    </td>
+    <td>Leverage Docker as it is well established.  Extract Docker image into squash-FS, run in chroot env</td>
+    <td></td>
+</tr>
+
+<tr>
+      <td>Scheduler</td>
+      <td><a href="https://docs.docker.com/swarm/overview/">Docker Swarm</a></td>
+      <td>Agnostic, run singularity as a job.  Works well with Slurm, UGE, etc.</td>
+      <td>Can work as stand alone container environment.  For scalability, scheduler integration currently exist for SLURM, via SPANK plugin.  (Should work with other scheduler) </td>
+      <td><tt>qsub -l</tt> to request docker boolean resource.  UGE will be able to assign different priorities to diff containers</td>
+</tr>
+
+<tr>
+    <td>Resource Orchaestration</td>
+    <td>SwarmKit provided by Docker</td>
+    <td>Scheduler's job to spin multiple instances on multiple nodes</td>
+    <td>Yes.  <br>
+  <tt>
+  salloc -N4 ... <br>srun ... 
+  <tt>
+    </tt></tt></td> 
+    <td></td>
+    <!--
+    <td>Rkt can use Kubernates, Nomad, SwarmKit</td>
+    -->
+</tr>
+
+
+
+<tr>
+      <td>Namespace isolation paradigm</td>
+      <td>By Default, share little. <br>
+   Process, Network, user space are isolated by default, but can be shared via cli arg <br>
+   PID 1 is not init, but the process started by docker.  <br>
+   User inside container cannot see hosts' processes. <br>
+   Network typically NAT'ed <br>
+      </td>
+      <td>HPC workflow doesn't benefit much from process isolation, thus by default share most everything, so process running inside container is largely the same as running on actual host.  But process namespace isolation can easily be enabled.<br>
+   Default share Process Namespace, username space (user inside container can kill process on host) <br>
+   While inside a singularity shell, ps -ef shows all process of host, or those of other containers.  container user can kill PID of process on host.   <br>
+   User does not change ID inside container, cannot become root from inside the process.  <br>
+   Network is transparent to the process.  <br>
+   /home mount is made available in container, -B will add additional bind mounts easily.  <br>
+      </td>
+      <td>Supported</td>
+   <td></td>
+</tr>
+
+
+
+
+
+<tr>
+      <td>Resource restriction via cgroup?</td>
+      <td>docker run -c ... -m ... --cpuset ... </td>
+      <td>Not touched by Singularity.  Scheduler/Resource Manager to control what is available to Singularity </td>
+      <td>Let SLURM manage cgroup restrictions</td>
+   <td> <a href="https://tin6150.github.io/psg/lsf.html#cgroups">cgroups_params</a> in qconf -mconf
+    </td>
+</tr>
+
+
+
+
+<tr>
+      <td>MPI</td>
+      <td>
+          MP-what? :-)<br>
+      </td>
+      <td> 
+      Singularity has build-in support for MPI (OpenMPI, MPICH, IntelMPI).  <br>
+  Once app is build with MPI libraries, execute mpirun as normal, replacing the usual binary with the single file singularity app.  <br>
+  While the app is running inside the singularity container, Process Management Interface (PMI/PMIx) calls will pass thru the singularity launcher onto ORTED.  This is what MPI is designed to do, no hacks, so works well.<br>
+   </td>
+      <td>Shifter relies on MPICH Application Binary Interface (ABI).  <br>
+      Apps that use vanilla MPI that is compatibile with MPICH would work.  Site-specific MPI libraries need to be copied to the container at run time.  LD_LIBRARY_PATH need to include for example /opt/udiImage/...  
+      </td>
+   <td></td>
+</tr>
+
+
+<tr>
+      <td>MPI eg</td>
+      <td> </td>
+      <td> 
+ <tt>mpirun singularity exec centos_ompi.img /usr/bin/mpi_ring</tt> <br>
+ <ul>
+ <li> The mpirun command is executed on the host.  <br>
+ </li><li> The mpi_ring command is from inside the container.  <br>
+ </li><li> PMIx in OpenMPI perform a version handshake, and everything will work so long as the host's version is equal or newer than the one inside the container.  <br>
+ </li><li> MPI host list come from the host, the container don't need to worry about host discovery.  <br>
+ </li><li> See the <a href="#singularity_mpi">singularity mpi diagram</a> below for MPI call flow details.
+ </li></ul>
+      </td>
+      <td></td>
+      <td></td>
+</tr>
+
+
+
+
+
+
+
+
+
+<tr>
+    <td>IB</td>
+    <td>Likely ok for IPoIB.  Probably no support for RDS.</td>
+   <td>Native access</td>
+    <td></td>
+    <td></td>
+</tr>
+
+<tr>
+      <td>GPU</td>
+      <td>Your app should run head-less, why you trying to access video card? :-)</td>
+      <td>Native access, native speed.  See
+          <a href="https://hpc.nih.gov/apps/singularity.html#gpu">NIH</a>'s page for setup
+      </td>
+      <td>In progress.  Reportedly getting near native performance</td>
+   <td></td>
+</tr>
+
+
+<tr>
+      <td>Network access</td>
+      <td>Utilize Network Namespace. NAT is default</td>
+      <td>Transparent.  Access network like any user process would.</td>
+      <td>Transparent?</td>
+    <td></td>
+</tr>
+
+<tr>
+    <td>Host's device access</td>
+    <td></td>
+    <td>/dev, /sys and /proc are bind mounted to container by default.</td>
+    <td>/dev, /sys and /proc of host show up inside container</td>
+  <td></td>
+</tr>
+
+
+<tr>
+    <td>Host's file system access</td>
+    <td>
+        <tt>docker run -v hostpath:containerpath</tt> will bind mount to make host's FS accessible to container.  container can be modified and saved.  root access possible.
+    </td>
+
+    
+    
+    
+    <td>
+        Singularity app run as a user process, therefore it has access to all of host's fs and devices that any user process have access to, including specially optimized FS like Lustre and GPFS.  Singularity performs a bind mount between host's mount to the inside of the container.  <br>
+        <tt>-B /opt:/mnt</tt> will bind mount host's /opt to container's /mnt <br>
+        Container writable if started with <tt>-w</tt>.  <br>
+        Root access possible if singularity is run by root <br>
+    </td>
+    <td>Start shifter with volume mapping, done using loop dev. <br>
+ User has access to all typical mounts from host. <br>
+ Allows mounting a localized loop mounted file system on each node to act as a local cache, especially useful in diskless cluster. <br>
+ <!-- from Lisa G comment -->
+    </td>
+    <td>qsub -xdv to map host's FS to container</td> 
+</tr>
+
+<tr>
+    <td>Data persistence in image</td>
+    <td>
+ <ul>
+        <li>Container is writable at run time, but need to issue <tt>docker commit</tt> from outside the container for changes to persist.
+        </li><li>No host FS mounted/mapped by default.  <br>
+ </li></ul>
+    </td>
+    <td>
+ <ul>
+        <li>By default container's FS is mounted Read-only; the bind mounts to the host drive is always writable<br>
+ </li><li>Can use <tt>-w</tt> flag of singularity to start container in read/write mode.  
+ </li></ul>
+    </td>
+    <td>?</td>
+  <td></td>
+</tr>
+
+
+
+
+<tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+</tr>
+
+
+<tr>
+    <td>Deployment</td>
+    <td>
+        Single package install.  <br>
+        Daemon service with root priviledge <br>
+        Use in batch processing environment left as an exercise to the reader <br>
+    </td>
+    <td>
+    root to install singularity, sexec-setuid need setuid root to work correctly. <br>
+    Single .rpm/.deb per host.<br>
+    No scheduler modification needed.
+  </td>
+    <td>
+    Shifter need to be installed in all hpc nodes <br>
+    Docker NOT needed in hpc <br>
+    Need an ImageGateway <br>
+  </td>
+    <td>
+    Upgrade to new version of UGE <br>
+    Head and compute nodes need to be newer version of Linux that supports Docker (eg RHEL 7).
+  </td>
+</tr>
+
+
+<tr>
+      <td>Container activation</td>
+      <td>Docker daemon running on each host</td>
+      <td>loopback mount on singularity image file to utilize container.  No daemon process.</td>
+      <td>No docker daemon on CN. srun ... loopback mount </td>
+      <td>May employ a set of nodes with running docker daemon, such nodes are flagged as providing a boolean resource for job to make request against.  (?)</td>
+</tr>
+
+
+<tr>
+    <td>Container build-up</td>
+    <td>
+        <ol>
+        <li>Docker spec file.
+        </li><li>Interactive build container, then use <tt>docker save</tt>.
+        </li><li>Pull existing image from repository such as docker hub, docker store, private repository.
+        </li></ol>
+    </td>
+    <td>
+        <ol>
+        <li>Create singularity .def file.  Package dependencies are automatically analyzed and incorporated into the image
+        </li><li>Interactive expand on existing image by leveraging  <tt>(sudo) singularity shell -w</tt>.
+        </li><li>Import/convert a docker image into a singularity image <tt>singularity import</tt>.
+        </li><li>Share pre-build singularity image file (single sparse file, very compressible).  Singularity Hub (coming soon?  already exist?)
+        </li></ol>
+    </td>
+    <td>
+        <ol>
+        <li>Import/convert docker container into shifter container
+        </li><li>Abilities to run image in other format (eg ext4), but not sure how such container image is provisioned.
+        </li></ol>
+    </td>
+    <td></td>
+</tr>
+
+
+
+
+
+<tr>
+      <td>Security</td>
+      <td>
+    User running docker commands need to be in special docker group to gain elevated system access <br>
+    </td>
+      <td>
+    No change in security paradigm.<br>
+    User run singularity image/app without special privileges.  
+    </td>
+      <td>
+    root to install shifter binary.  <br>
+    Need special integration into scheduler (or only in cray cuz they are special?).<br>
+    User run shifter image/app without special privileges.  <br>
+    </td>
+    <td></td>
+</tr>
+
+<tr>
+    <td> Root escalation</td>
+    <td> container starts with priviledged access
+    </td>
+    <td>
+ To obtain root in singularity container, it must have been started as root <br>
+        ie, root can be had via <tt>sudo singularity shell centos7.img</tt> <br>
+ Container started as normal user cannot use su or sudo to become root; singularity utilize kernel's NO_NEW_PRIV flag (Kernel 3.5 and above).  <br>
+        ie, <tt>/bin/su</tt> (and <tt>/bin/sudo</tt>), will have setuid flag, but it is blocked from the inside by singularity<br>    
+    </td>
+    <td> ?
+    </td>
+    <td>
+    </td>
+</tr>
+
+
+<tr>
+    <td>Env</td>
+    <td>
+    </td>
+    <td>
+ <ul>
+        <li> container inherit the env of user invoking the singularity cmd<br>
+        </li><li> /home, /var/tmp, /tmp, /root are bind mount from host and fully writable <br>
+        </li><li> / is read-only mount and container is typically inmutable (unless started with -w flag)<br>
+ </li></ul>
+    </td>
+    <td></td>
+  <td></td>
+</tr>
+
+
+<tr>
+      <td>User management</td>
+      <td>?</td>
+      <td>Yes.  Container has sanitized passwd, group files</td>
+      <td></td>
+    <td></td>
+</tr>
+
+
+
+<tr>
+    <td>Sample User Commands</td>
+    <td><tt>
+ sudo docker pull httpd:latest    <br>
+ docker images -a <br>
+ sudo docker run -p 8000:80 httpd <br>
+ 
+    </tt></td>
+    <td><tt>
+        sudo singularity create ubuntu.img <br>
+        sudo singularity bootstrap ubuntu.img ubuntu.def <br>
+        singularity exec  ubuntu.img bash <br>
+       ./ubuntu.img  </tt> # the %runscript section of the container will autoamtically be invoked <br>
+    </td>
+    <td>
+      <tt>
+      module load shifter <br>
+      shiftering pull docker:python:3.5  # pull docker image <br>   
+      shifterimg images # list images <br>
+      shifter --image=python:3.5 python  # execute a container app <br>
+      module load slurm <br>
+      sbatch --image=docker:python:3.5 shifter python # run as job <br>
+      </tt>
+      <!--shiftering pull docker:ubuntu:14.04 <BR />   -->
+      <!-- # pull docker image, recommend specific version rather than using :latest  -->
+      <!--shifter - -image=r-base:latest R  # execute a container app <BR />-->
+      <!--
+      salloc -n1 - -image=docker:python:3.5.1
+      srun shifter ./myscript.py              # 
+      -->
+    </td>
+  <td></td>
+</tr>
+
+
+
+
+
+
+<tr>
+  <td>Unix pipes</td>
+  <td>
+    output of container captured by pipe.  eg: <br>
+    <tt>docker run centos:6 ls /etc | wc</tt> <br>
+    However, docker won't take standard input,  at least not for 1.5-1.  The follwing does not work as one might expect: <br>
+    <tt>echo 'cat("Hello world\n")' | docker run r-base:latest R --no-save</tt> <br>
+    <!-- echo "print hello world" | docker run python:latest python <BR /> -->
+  </td>
+  <td>
+      can daisy chain singularity apps like regular unix commands.  eg <br>
+      <tt>echo "echo hello world" | singularity exec centos7.img bash </tt>  <br>
+    
+  </td>
+  <td>
+    Shifter will capture standard input as well inside an sbatch script: <br>
+    <tt>echo 'cat("Hello world\n")' | shifter R --no-save</tt>
+  </td>
+  <td></td>
+</tr>
+
+<tr>
+  <td>Performance</td>
+  <td>Docker container startup time is much faster than traditional VM, as it does not need to emaulate hardware and is essentially just starting a new process. </td>
+  <td>
+ Container startup time a bit faster than docker, as it does away with much of the namespace settings. <br>
+ On Lustre backed system, where metadata lookup span different server than data block lookup, single file container image significantly improve performance by reducing multitude of meta data lookup with the MDS.
+  </td>
+  <td>
+ On Lustre backed system, where metadata lookup span different server than data block lookup, single file container image significantly improve performance by reducing multitude of meta data lookup with the MDS.
+  </td>
+  <td></td>
+</tr>
+
+
+<tr>
+    <td>Misc</td>
+    <td></td>
+    <td>
+    Singularity app can run outside HPC, without any job scheduler.  It can serve as a container for app portability outside the HPC world, and since a single file encompass the whole container, this maybe advantageous for sharing, portability and archive.  <br>
+    Singularity recommends compiling all apps into the Singularity container, spec files would need to be written.  I hear they are looking to adopt Docker and/or RKT specfile to minimize this burden.  <br>
+    Docker files can be imported or even run directly.  Given docker operate on a different paradigm, the hit-and-miss outcome of such conversion is understandable.  <br>
+    In future development, maybe NeRSC's shifter could  run singularity app as well.  <br>
+    </td>
+    <td>
+    Shifter container/app can run as stand alone outside HPC scheduler.  This is certainly useful for testing and development.  However, if one isn't trying to utilize container in HPC, maybe there is not much point in converting docker images to shifter images.  <br>
+    Shifter works by pulling the large number of existing containers.  Docker isn't needed inside the HPC, some gateway location can be used for Shifter to pull docker images and store converted image in a location accessible cluster-wide, eg /scratch.  See <a href="https://tin6150.github.io/psg/blogger_container_hpc.html#shifter_workflow">shifter workflow</a> below for more details. <br>
+    </td>
+  <td></td>
+</tr>
+
+<tr>
+    <td>Feel</td>
+    <td>High :)</td>
+    <td>Building a singularity 2.2 image feels a lot like building a VM using kickstart file.
+    </td>
+    <td></td>
+  <td></td>
+</tr>
+
+
+<tr>
+    <td>Adopters</td>
+    <td>Like wildfire by internet companies</td>
+    <td>UC Berkeley, Stanford, TACC, SDSC, GSI, HPC-UGent, Perdue, UFL, NIH, etc.  <br>
+        Seems like the non-cray community is gravitating toward Singularity.  <br>
+        Integrated into Qlustar, Bright <br>
+    </td>
+    <td>NeRSC, VLSCI, CSCS, CERN, etc.  <br>
+        Seems like the big physics number crunchers are gravitating toward shifter, cuz they use Cray or IBM Blue Gene? </td>
+  <td></td>
+</tr>
+
+
+<!--
+<tr>
+    <td>Topic</td>
+    <td></td>
+    <td></td>
+    <td></td>
+   <td></td>
+</tr>
+-->
+
+
+</tbody>
+</table>
